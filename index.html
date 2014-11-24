@@ -1,0 +1,118 @@
+<html>
+	<head>
+		<link rel="stylesheet" type="text/css" href="style.css">
+		
+	</head>
+	<body>
+		<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>	
+		<script type="text/javascript">
+			var mCoord,
+					width = window.innerWidth,
+					height = window.innerHeight;
+			function line(id, colorDirection, startCoord, startRGB){
+				this.id = id;
+				this.colorDirection = colorDirection;
+				this.startCoord = startCoord;
+				this.startRGB = startRGB;
+
+				this.createPath = function(){
+					var array = [this.startCoord,
+						{"x": parseInt(Math.random()*width), 
+							"y": parseInt(Math.random()*height), 
+							"z": parseInt(Math.random()*1000)
+						}];
+					if (typeof mCoord !== "undefined" || mCoord != null){
+						var endCoord = mCoord;
+						mCoord = null;
+					} else{
+						var endCoord = {
+							"x": parseInt(Math.random()*width),
+							"y": parseInt(Math.random()*height),
+							"z": parseInt(Math.random()*1000)
+						};
+					}
+					array.push(endCoord);
+					var rgbStart = this.startRGB
+					var rgbEnd = this.startRGB;
+					if (this.colorDirection === "up"){
+						if (this.startRGB.r < 255){
+							rgbEnd.r += 15;
+						} else if (this.startRGB.g < 255){
+							rgbEnd.g += 15;
+						} else if (this.startRGB.b < 240){
+							rgbEnd.b += 15;
+						} else if (this.startRGB.b == 240){
+							rgbEnd.b += 15;
+							this.colorDirection = "down";
+						}
+					} else {
+						if (this.startRGB.r > 0){
+							rgbEnd.r -= 15;
+						} else if (this.startRGB.g > 0){
+							rgbEnd.g -= 15;
+						} else if (this.startRGB.b > 15){
+							rgbEnd.b -= 15;						
+						} else if (this.startRGB.b == 15){
+							rgbEnd.b -= 15;
+							this.colorDirection = "up";
+						}
+					}
+					var lineFunction = d3.svg.line()
+						.x(function (d){ 
+							return d.x; 
+						})
+						.y(function (d){ 
+							return d.y; 
+						})
+						.interpolate("basis");
+					var path = svg.append('path')
+						.attr("d", lineFunction(array))
+						.attr("class", "path path_" + id)
+						.attr("stroke-width", 3)
+						.attr("fill", "none")
+						.style("stroke", function (){
+							return "rgb(" + rgbStart.r + ", " + rgbStart.g + ", " + rgbStart.b + ")";
+						})
+						.attr("z-index", array[0].z)
+	        var length = path.node().getTotalLength();
+	        path.attr("stroke-dasharray", length + " " + length)
+	        	.attr("stroke-dashoffset", length)
+	        	.transition()
+	        	.duration(6000)
+	        	.ease("linear")
+	        	.attr("stroke-dashoffset", 0)
+	        	.style("stroke", function(){
+	        		return "rgb(" + rgbEnd.r + ", " + rgbEnd.g + ", " + rgbEnd.b + ")";
+	        	})
+	        	.attr("z-index", array[2].z);
+	        this.startCoord = endCoord;
+	        this.startRGB = rgbEnd;
+	        var that = this.createPath;
+	        setTimeout(that, 6000);
+				}
+			}
+			var coordStart = {
+				"x": parseInt(Math.random()*width), 
+				"y": parseInt(Math.random()*height),
+				"z": parseInt(Math.random()*1000)
+			};
+			var rgbStart = {"r": 255, "g": 255, "b": 255};
+
+			var line0 = new line(0, "down", coordStart, rgbStart);
+			console.log("coordStart", line0.startCoord, "rgbStart", line0.startRGB)
+			var svg = d3.select("body")
+				.append("svg")
+				.attr("width", "100%")
+				.attr("height", "100%")
+				.on("mousedown", mouseDown);
+			line0.createPath();
+			function mouseDown (){
+				mCoord = {
+					"x": d3.event.pageX,
+					"y": d3.event.pageY,
+					"z": Math.random()*1000
+				};
+			}
+		</script>
+	</body>
+</html>
